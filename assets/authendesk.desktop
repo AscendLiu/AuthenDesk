@@ -1,11 +1,16 @@
 [Desktop Entry]
 Name=AuthenDesk
 Name[zh_CN]=令牌桌面
-Comment=Desktop 2FA Authenticator
+GenericName=2FA Authenticator
+GenericName[zh_CN]=双因素认证令牌
+Comment=Desktop Two-Factor Authentication Token Manager
 Comment[zh_CN]=桌面双因素认证令牌管理器
-Exec=AuthenDesk
+Exec=AuthenDesk %u
 Icon=authendesk
 Terminal=false
 Type=Application
-Categories=Utility;Security;Qt;
-Keywords=2FA;TOTP;OTP;Authenticator;
+Categories=Utility;Security;Qt;Network;Application;
+Keywords=2FA;TOTP;OTP;Authenticator;Auth;Token;2FAS;Password;Security;
+MimeType=x-scheme-handler/otpauth;
+StartupNotify=true
+StartupWMClass=AuthenDesk

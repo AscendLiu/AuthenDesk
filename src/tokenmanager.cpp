@@ -10,16 +10,25 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFile>
+#include <optional>
 
 TokenManager::TokenManager(ServiceIconProvider *icons, QObject *parent)
     : QObject(parent)
     , m_iconProvider(icons)
+    , m_connectionName(QString("authendesk_db_%1").arg(reinterpret_cast<quintptr>(this), 0, 16))
 {
 }
 
 TokenManager::~TokenManager()
 {
-    QSqlDatabase::database().close();
+    m_tokens.clear();
+
+    if (QSqlDatabase::contains(m_connectionName)) {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+        if (db.isOpen()) {
+            db.close();
+        }
+    }
 }
 
 QString TokenManager::defaultDbPath() const
@@ -29,19 +38,20 @@ QString TokenManager::defaultDbPath() const
     return dataDir + "/tokens.db";
 }
 
-bool TokenManager::initDatabase()
+Result<QSqlDatabase> TokenManager::initDatabase()
 {
     m_dbPath = defaultDbPath();
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
     db.setDatabaseName(m_dbPath);
 
     if (!db.open()) {
-        qWarning() << "Failed to open database:" << db.lastError().text();
-        return false;
+        QString error = QString("Failed to open database: %1").arg(db.lastError().text());
+        qWarning() << error;
+        return Result<QSqlDatabase>::fail(error);
     }
 
-    QSqlQuery q;
-    q.exec("CREATE TABLE IF NOT EXISTS tokens ("
+    QSqlQuery q(db);
+    if (!q.exec("CREATE TABLE IF NOT EXISTS tokens ("
            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
            "name TEXT NOT NULL,"
            "secret TEXT NOT NULL,"
@@ -58,19 +68,35 @@ bool TokenManager::initDatabase()
            "order_position INTEGER DEFAULT 0,"
            "created_at INTEGER DEFAULT 0,"
            "updated_at INTEGER DEFAULT 0"
-           ")");
+           ")")) {
+        QString error = QString("Failed to create table: %1").arg(q.lastError().text());
+        qWarning() << error;
+        return Result<QSqlDatabase>::fail(error);
+    }
 
-    q.exec("CREATE INDEX IF NOT EXISTS idx_secret ON tokens(secret)");
+    if (!q.exec("CREATE INDEX IF NOT EXISTS idx_secret ON tokens(secret)")) {
+        qWarning() << "Failed to create index:" << q.lastError().text();
+    }
 
-    return true;
+    return Result<QSqlDatabase>::ok(db);
 }
 
-bool TokenManager::loadFromDatabase()
+Result<bool> TokenManager::loadFromDatabase()
 {
-    initDatabase();
+    auto dbResult = initDatabase();
+    if (!dbResult) {
+        return Result<bool>::fail(dbResult.error);
+    }
 
     m_tokens.clear();
-    QSqlQuery q("SELECT * FROM tokens ORDER BY order_position");
+    QSqlDatabase db = dbResult.value.value();
+    QSqlQuery q(db);
+    if (!q.exec("SELECT * FROM tokens ORDER BY order_position")) {
+        QString error = QString("Failed to load tokens: %1").arg(q.lastError().text());
+        qWarning() << error;
+        return Result<bool>::fail(error);
+    }
+
     while (q.next()) {
         TokenInfo info;
         info.dbId = q.value("id").toInt();
@@ -93,12 +119,13 @@ bool TokenManager::loadFromDatabase()
     }
 
     emit tokensChanged();
-    return true;
+    return Result<bool>::ok(true);
 }
 
-bool TokenManager::saveToken(const TokenInfo &token)
+Result<bool> TokenManager::saveToken(const TokenInfo &token)
 {
-    QSqlQuery q;
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery q(db);
     q.prepare("INSERT INTO tokens (name, secret, issuer, account, digits, period, "
               "algorithm, token_type, hotp_counter, badge_color, icon_collection_id, "
               "group_id, order_position, created_at, updated_at) "
@@ -122,23 +149,31 @@ bool TokenManager::saveToken(const TokenInfo &token)
     q.addBindValue(now);
 
     if (!q.exec()) {
-        qWarning() << "Failed to save token:" << q.lastError().text();
-        return false;
+        QString error = QString("Failed to save token: %1").arg(q.lastError().text());
+        qWarning() << error;
+        return Result<bool>::fail(error);
     }
-    return true;
+    return Result<bool>::ok(true);
 }
 
-bool TokenManager::deleteToken(int dbId)
+Result<bool> TokenManager::deleteToken(int dbId)
 {
-    QSqlQuery q;
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery q(db);
     q.prepare("DELETE FROM tokens WHERE id = ?");
     q.addBindValue(dbId);
-    return q.exec();
+    if (!q.exec()) {
+        QString error = QString("Failed to delete token: %1").arg(q.lastError().text());
+        qWarning() << error;
+        return Result<bool>::fail(error);
+    }
+    return Result<bool>::ok(true);
 }
 
-bool TokenManager::updateTokenInDb(const TokenInfo &token)
+Result<bool> TokenManager::updateTokenInDb(const TokenInfo &token)
 {
-    QSqlQuery q;
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery q(db);
     q.prepare("UPDATE tokens SET name=?, secret=?, issuer=?, account=?, digits=?, period=?, "
               "algorithm=?, token_type=?, hotp_counter=?, badge_color=?, icon_collection_id=?, "
               "group_id=?, order_position=?, updated_at=? WHERE id=?");
@@ -159,16 +194,23 @@ bool TokenManager::updateTokenInDb(const TokenInfo &token)
     q.addBindValue(token.dbId);
 
     if (!q.exec()) {
-        qWarning() << "Failed to update token:" << q.lastError().text();
-        return false;
+        QString error = QString("Failed to update token: %1").arg(q.lastError().text());
+        qWarning() << error;
+        return Result<bool>::fail(error);
     }
-    return true;
+    return Result<bool>::ok(true);
 }
 
-bool TokenManager::deleteAllTokens()
+Result<bool> TokenManager::deleteAllTokens()
 {
-    QSqlQuery q("DELETE FROM tokens");
-    return q.exec();
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery q(db);
+    if (!q.exec("DELETE FROM tokens")) {
+        QString error = QString("Failed to delete all tokens: %1").arg(q.lastError().text());
+        qWarning() << error;
+        return Result<bool>::fail(error);
+    }
+    return Result<bool>::ok(true);
 }
 
 void TokenManager::resolveIcons(TokenInfo &token) const
@@ -205,12 +247,14 @@ bool TokenManager::addToken(const QVariantMap &data)
     if (info.name.isEmpty() || info.secret.isEmpty())
         return false;
 
-    if (!saveToken(info))
+    auto saveResult = saveToken(info);
+    if (!saveResult) {
         return false;
+    }
 
-    // Get the auto-generated id
-    QSqlQuery q("SELECT last_insert_rowid()");
-    if (q.next())
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery q(db);
+    if (q.exec("SELECT last_insert_rowid()") && q.next())
         info.dbId = q.value(0).toInt();
 
     resolveIcons(info);
@@ -225,7 +269,10 @@ bool TokenManager::removeToken(int index)
     if (index < 0 || index >= m_tokens.size())
         return false;
 
-    deleteToken(m_tokens[index].dbId);
+    auto deleteResult = deleteToken(m_tokens[index].dbId);
+    if (!deleteResult) {
+        qWarning() << "Failed to delete token from DB:" << deleteResult.error;
+    }
     m_tokens.removeAt(index);
     emit tokensChanged();
     return true;
@@ -247,7 +294,10 @@ bool TokenManager::updateToken(int index, const QVariantMap &data)
     if (data.contains("hotpCounter")) info.hotpCounter = data["hotpCounter"].toInt();
     if (data.contains("iconCollectionId")) info.iconCollectionId = data["iconCollectionId"].toString();
 
-    updateTokenInDb(info);
+    auto updateResult = updateTokenInDb(info);
+    if (!updateResult) {
+        qWarning() << "Failed to update token in DB:" << updateResult.error;
+    }
     emit tokenUpdated(index);
     return true;
 }
@@ -275,12 +325,15 @@ QVariantMap TokenManager::getToken(int index) const
 
 void TokenManager::clearAllTokens()
 {
-    deleteAllTokens();
+    auto deleteResult = deleteAllTokens();
+    if (!deleteResult) {
+        qWarning() << "Failed to delete all tokens from DB:" << deleteResult.error;
+    }
     m_tokens.clear();
     emit tokensChanged();
 }
 
-bool TokenManager::importTokens(const QList<TokenInfo> &newTokens)
+Result<bool> TokenManager::importTokens(const QList<TokenInfo> &newTokens)
 {
     int added = 0;
     for (TokenInfo token : newTokens) {
@@ -294,9 +347,11 @@ bool TokenManager::importTokens(const QList<TokenInfo> &newTokens)
         if (!duplicate) {
             resolveIcons(token);
             token.orderPosition = m_tokens.size();
-            if (saveToken(token)) {
-                QSqlQuery q("SELECT last_insert_rowid()");
-                if (q.next())
+            auto saveResult = saveToken(token);
+            if (saveResult) {
+                QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+                QSqlQuery q(db);
+                if (q.exec("SELECT last_insert_rowid()") && q.next())
                     token.dbId = q.value(0).toInt();
                 m_tokens.append(token);
                 added++;
@@ -307,7 +362,7 @@ bool TokenManager::importTokens(const QList<TokenInfo> &newTokens)
     if (added > 0) {
         emit tokensChanged();
     }
-    return added > 0;
+    return Result<bool>::ok(added > 0);
 }
 
 QString TokenManager::defaultExportPath() const

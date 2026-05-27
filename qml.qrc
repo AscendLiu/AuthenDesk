@@ -7,6 +7,7 @@
         <file>qml/EditTokenPage.qml</file>
         <file>qml/ScreenCapture.qml</file>
         <file>qml/ImportPage.qml</file>
+        <file>qml/Strings.qml</file>
         <file>assets/services.json</file>
         <file>assets/app_icon.png</file>
     </qresource>

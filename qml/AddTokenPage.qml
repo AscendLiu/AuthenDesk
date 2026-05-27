@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
+import AuthenDesk
 
 Page {
     id: page
@@ -27,7 +28,7 @@ Page {
             anchors.rightMargin: 12
 
             Button {
-                text: "< 返回"
+                text: Strings.back
                 font.pixelSize: 16
                 flat: true
                 contentItem: Text {
@@ -41,7 +42,7 @@ Page {
             }
 
             Text {
-                text: "添加令牌"
+                text: Strings.addTokenTitle
                 color: "#0F172A"
                 font.pixelSize: 20
                 font.bold: true
@@ -66,7 +67,7 @@ Page {
             Button {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 38
-                text: "手动输入"
+                text: Strings.manualInput
                 font.pixelSize: 15
 
                 background: Rectangle {
@@ -88,7 +89,7 @@ Page {
             Button {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 38
-                text: "二维码导入"
+                text: Strings.qrImport
                 font.pixelSize: 15
 
                 background: Rectangle {
@@ -128,7 +129,7 @@ Page {
                     Button {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 50
-                        text: qrFilePath ? qrFilePath.split("/").pop() : "选择图片..."
+                        text: qrFilePath ? qrFilePath.split("/").pop() : Strings.selectImage
                         font.pixelSize: 14
 
                         background: Rectangle {
@@ -150,7 +151,7 @@ Page {
                     Button {
                         Layout.preferredWidth: 100
                         Layout.preferredHeight: 50
-                        text: "截屏识别"
+                        text: Strings.screenCapture
                         font.pixelSize: 14
 
                         background: Rectangle {
@@ -168,7 +169,7 @@ Page {
                         onClicked: {
                             if (isCapturing) return
                             isCapturing = true
-                            qrStatus.text = "请选择二维码区域..."
+                            qrStatus.text = Strings.selectingQrRegion
                             qrStatus.color = "#64748B"
 
                             captureWindows = []
@@ -177,7 +178,7 @@ Page {
                                 var win = comp.createObject(page, { screenIndex: i })
                                 win.regionSelected.connect(function(x, y, w, h) {
                                     closeAllCaptureWindows()
-                                    qrStatus.text = "解码中..."
+                                    qrStatus.text = Strings.decoding
                                     qrStatus.color = "#64748B"
                                     captureTimer.rectX = x
                                     captureTimer.rectY = y
@@ -210,7 +211,7 @@ Page {
                     spacing: 12
 
                     Text {
-                        text: "名称"
+                        text: Strings.name
                         color: "#64748B"
                         font.pixelSize: 15
                         Layout.preferredWidth: 60
@@ -219,7 +220,7 @@ Page {
                     TextField {
                         id: nameField
                         Layout.fillWidth: true
-                        placeholderText: "服务名称"
+                        placeholderText: Strings.namePlaceholder
                         placeholderTextColor: "#94A3B8"
                         color: "#0F172A"
                         font.pixelSize: 16
@@ -238,7 +239,7 @@ Page {
                     spacing: 12
 
                     Text {
-                        text: "密钥"
+                        text: Strings.secret
                         color: "#64748B"
                         font.pixelSize: 15
                         Layout.preferredWidth: 60
@@ -247,7 +248,7 @@ Page {
                     TextField {
                         id: secretField
                         Layout.fillWidth: true
-                        placeholderText: "密钥 (Base32)"
+                        placeholderText: Strings.secretPlaceholder
                         placeholderTextColor: "#94A3B8"
                         color: "#0F172A"
                         font.pixelSize: 16
@@ -267,7 +268,7 @@ Page {
                     spacing: 12
 
                     Text {
-                        text: "账号"
+                        text: Strings.account
                         color: "#64748B"
                         font.pixelSize: 15
                         Layout.preferredWidth: 60
@@ -276,7 +277,7 @@ Page {
                     TextField {
                         id: accountField
                         Layout.fillWidth: true
-                        placeholderText: "账号 (可选)"
+                        placeholderText: Strings.accountPlaceholder
                         placeholderTextColor: "#94A3B8"
                         color: "#0F172A"
                         font.pixelSize: 16
@@ -295,7 +296,7 @@ Page {
                     spacing: 12
 
                     Text {
-                        text: "发行者"
+                        text: Strings.issuer
                         color: "#64748B"
                         font.pixelSize: 15
                         Layout.preferredWidth: 60
@@ -304,7 +305,7 @@ Page {
                     TextField {
                         id: issuerField
                         Layout.fillWidth: true
-                        placeholderText: "发行者 (可选)"
+                        placeholderText: Strings.issuerPlaceholder
                         placeholderTextColor: "#94A3B8"
                         color: "#0F172A"
                         font.pixelSize: 16
@@ -320,7 +321,7 @@ Page {
 
                 Button {
                     Layout.fillWidth: true
-                    text: advancedExpanded ? "▼ 高级设置" : "▶ 高级设置"
+                    text: advancedExpanded ? "\u25BC " + Strings.advancedSettings : "\u25B6 " + Strings.advancedSettings
                     flat: true
 
                     contentItem: Text {
@@ -347,7 +348,7 @@ Page {
 
                     RowLayout {
                         Text {
-                            text: "算法"
+                            text: Strings.algorithm
                             color: "#94A3B8"
                             font.pixelSize: 15
                             Layout.preferredWidth: 120
@@ -376,7 +377,7 @@ Page {
 
                     RowLayout {
                         Text {
-                            text: "周期 (秒)"
+                            text: Strings.period
                             color: "#94A3B8"
                             font.pixelSize: 15
                             Layout.preferredWidth: 120
@@ -405,7 +406,7 @@ Page {
 
                     RowLayout {
                         Text {
-                            text: "位数"
+                            text: Strings.digits
                             color: "#94A3B8"
                             font.pixelSize: 15
                             Layout.preferredWidth: 120
@@ -435,7 +436,7 @@ Page {
 
                 Button {
                     Layout.fillWidth: true
-                    text: "添加令牌"
+                    text: Strings.addTokenButton
                     font.pixelSize: 16
                     enabled: !adding
 
@@ -455,7 +456,7 @@ Page {
                         if (adding) return
                         if (nameField.text.trim() === "" || secretField.text.trim() === "") {
                             errorText.visible = true
-                            errorText.text = "名称和密钥不能为空"
+                            errorText.text = Strings.nameAndSecretRequired
                             errorTimer.restart()
                             return
                         }
@@ -481,7 +482,7 @@ Page {
                         } else {
                             adding = false
                             errorText.visible = true
-                            errorText.text = "添加令牌失败"
+                            errorText.text = Strings.addTokenFailed
                             errorTimer.restart()
                         }
                     }
@@ -532,11 +533,11 @@ Page {
 
     FileDialog {
         id: fileDialog
-        title: "选择二维码截图"
-        nameFilters: ["图片文件 (*.png *.jpg *.jpeg *.bmp)", "所有文件 (*)"]
+        title: Strings.selectQrScreenshot
+        nameFilters: [Strings.imageFiles, Strings.allFiles]
         onAccepted: {
             qrFilePath = selectedFile.toString().replace("file://", "")
-            qrStatus.text = "解码中..."
+            qrStatus.text = Strings.decoding
             qrStatus.color = "#64748B"
             qrDecoder.decodeImage(qrFilePath)
         }
@@ -545,7 +546,7 @@ Page {
     Connections {
         target: qrDecoder
         function onDecodeFinished(result) {
-            qrStatus.text = "识别成功"
+            qrStatus.text = Strings.decodeSuccess
             qrStatus.color = "#16A34A"
             nameField.text = result.name || ""
             secretField.text = result.secret || ""

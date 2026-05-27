@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tokendata.h"
+#include "result.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -15,7 +16,7 @@ class TokenManager : public QObject
     Q_OBJECT
 public:
     explicit TokenManager(ServiceIconProvider *icons = nullptr, QObject *parent = nullptr);
-    ~TokenManager();
+    ~TokenManager() override;
 
     Q_INVOKABLE bool addToken(const QVariantMap &tokenData);
     Q_INVOKABLE bool removeToken(int index);
@@ -28,8 +29,8 @@ public:
     const QList<TokenInfo> &tokens() const { return m_tokens; }
     int count() const { return m_tokens.size(); }
 
-    bool loadFromDatabase();
-    bool importTokens(const QList<TokenInfo> &newTokens);
+    Result<bool> loadFromDatabase();
+    Result<bool> importTokens(const QList<TokenInfo> &newTokens);
 
     QString defaultDbPath() const;
 
@@ -39,13 +40,14 @@ signals:
 
 private:
     void resolveIcons(TokenInfo &token) const;
-    bool initDatabase();
-    bool saveToken(const TokenInfo &token);
-    bool deleteToken(int id);
-    bool updateTokenInDb(const TokenInfo &token);
-    bool deleteAllTokens();
+    Result<QSqlDatabase> initDatabase();
+    Result<bool> saveToken(const TokenInfo &token);
+    Result<bool> deleteToken(int id);
+    Result<bool> updateTokenInDb(const TokenInfo &token);
+    Result<bool> deleteAllTokens();
 
     QList<TokenInfo> m_tokens;
     QString m_dbPath;
+    QString m_connectionName;
     ServiceIconProvider *m_iconProvider;
 };

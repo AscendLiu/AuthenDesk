@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
+import AuthenDesk
 
 Page {
     id: page
@@ -24,7 +25,7 @@ Page {
             anchors.rightMargin: 12
 
             Button {
-                text: "< 返回"
+                text: Strings.back
                 font.pixelSize: 16
                 flat: true
                 contentItem: Text {
@@ -38,7 +39,7 @@ Page {
             }
 
             Text {
-                text: "编辑令牌"
+                text: Strings.editTokenTitle
                 color: "#0F172A"
                 font.pixelSize: 20
                 font.bold: true
@@ -65,7 +66,7 @@ Page {
                 spacing: 12
 
                 Text {
-                    text: "名称"
+                    text: Strings.name
                     color: "#64748B"
                     font.pixelSize: 15
                     Layout.preferredWidth: 80
@@ -74,7 +75,7 @@ Page {
                 TextField {
                     id: nameField
                     Layout.fillWidth: true
-                    placeholderText: "服务名称"
+                    placeholderText: Strings.namePlaceholder
                     placeholderTextColor: "#94A3B8"
                     color: "#0F172A"
                     font.pixelSize: 16
@@ -99,7 +100,7 @@ Page {
                 spacing: 12
 
                 Text {
-                    text: "密钥"
+                    text: Strings.secret
                     color: "#64748B"
                     font.pixelSize: 15
                     Layout.preferredWidth: 80
@@ -108,7 +109,7 @@ Page {
                 TextField {
                     id: secretField
                     Layout.fillWidth: true
-                    placeholderText: "Base32 密钥"
+                    placeholderText: Strings.secretPlaceholder
                     placeholderTextColor: "#94A3B8"
                     color: "#0F172A"
                     font.pixelSize: 16
@@ -129,7 +130,7 @@ Page {
                 spacing: 12
 
                 Text {
-                    text: "账号"
+                    text: Strings.account
                     color: "#64748B"
                     font.pixelSize: 15
                     Layout.preferredWidth: 80
@@ -138,7 +139,7 @@ Page {
                 TextField {
                     id: accountField
                     Layout.fillWidth: true
-                    placeholderText: "可选"
+                    placeholderText: Strings.accountPlaceholder
                     placeholderTextColor: "#94A3B8"
                     color: "#0F172A"
                     font.pixelSize: 16
@@ -158,7 +159,7 @@ Page {
                 spacing: 12
 
                 Text {
-                    text: "发行者"
+                    text: Strings.issuer
                     color: "#64748B"
                     font.pixelSize: 15
                     Layout.preferredWidth: 80
@@ -167,7 +168,7 @@ Page {
                 TextField {
                     id: issuerField
                     Layout.fillWidth: true
-                    placeholderText: "可选"
+                    placeholderText: Strings.issuerPlaceholder
                     placeholderTextColor: "#94A3B8"
                     color: "#0F172A"
                     font.pixelSize: 16
@@ -184,7 +185,7 @@ Page {
 
             Button {
                 Layout.fillWidth: true
-                text: advancedExpanded ? "\u25BC Advanced Settings" : "\u25B6 Advanced Settings"
+                text: advancedExpanded ? "\u25BC " + Strings.advancedSettings : "\u25B6 " + Strings.advancedSettings
                 flat: true
 
                 contentItem: Text {
@@ -211,7 +212,7 @@ Page {
 
                 RowLayout {
                     Text {
-                        text: "算法"
+                        text: Strings.algorithm
                         color: "#94A3B8"
                         font.pixelSize: 15
                         Layout.preferredWidth: 120
@@ -245,7 +246,7 @@ Page {
 
                 RowLayout {
                     Text {
-                        text: "周期 (秒)"
+                        text: Strings.period
                         color: "#94A3B8"
                         font.pixelSize: 15
                         Layout.preferredWidth: 120
@@ -274,7 +275,7 @@ Page {
 
                 RowLayout {
                     Text {
-                        text: "位数"
+                        text: Strings.digits
                         color: "#94A3B8"
                         font.pixelSize: 15
                         Layout.preferredWidth: 120
@@ -304,7 +305,7 @@ Page {
 
             Button {
                 Layout.fillWidth: true
-                text: "保存修改"
+                text: Strings.saveChanges
                 font.pixelSize: 16
 
                 background: Rectangle {
@@ -322,7 +323,7 @@ Page {
                 onClicked: {
                     if (nameField.text.trim() === "" || secretField.text.trim() === "") {
                         errorText.visible = true
-                        errorText.text = "名称和密钥不能为空"
+                        errorText.text = Strings.nameAndSecretRequired
                         errorTimer.restart()
                         return
                     }
@@ -342,7 +343,7 @@ Page {
                         Window.window.popPage()
                     } else {
                         errorText.visible = true
-                        errorText.text = "保存修改失败"
+                        errorText.text = Strings.saveFailed
                         errorTimer.restart()
                     }
                 }

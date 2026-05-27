@@ -12,6 +12,20 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
+static QString getOpenSSLErrorString()
+{
+    QString errors;
+    unsigned long err;
+    char buf[256];
+    while ((err = ERR_get_error()) != 0) {
+        ERR_error_string_n(err, buf, sizeof(buf));
+        if (!errors.isEmpty())
+            errors += "; ";
+        errors += QString::fromUtf8(buf);
+    }
+    return errors;
+}
+
 bool ImportParser::importFromFile(const QString &filePath, const QString &password,
                                     QObject *tokenManagerObj)
 {
@@ -22,7 +36,8 @@ bool ImportParser::importFromFile(const QString &filePath, const QString &passwo
     if (error != NoError || tokens.isEmpty())
         return false;
 
-    return manager->importTokens(tokens);
+    auto result = manager->importTokens(tokens);
+    return result.value.value_or(false);
 }
 
 QPair<QList<TokenInfo>, ImportParser::Error> ImportParser::parseFile(const QString &filePath,
@@ -117,31 +132,43 @@ QPair<QList<TokenInfo>, ImportParser::Error> ImportParser::decryptAndParse(const
 
         bool ok = false;
         do {
-            if (EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, nullptr, nullptr) != 1)
+            if (EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, nullptr, nullptr) != 1) {
+                qWarning() << "OpenSSL error:" << getOpenSSLErrorString();
                 break;
-            if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr) != 1)
+            }
+            if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr) != 1) {
+                qWarning() << "OpenSSL error:" << getOpenSSLErrorString();
                 break;
+            }
             if (EVP_DecryptInit_ex(ctx, nullptr, nullptr,
                                     reinterpret_cast<const unsigned char *>(key.constData()),
-                                    reinterpret_cast<const unsigned char *>(iv.constData())) != 1)
+                                    reinterpret_cast<const unsigned char *>(iv.constData())) != 1) {
+                qWarning() << "OpenSSL error:" << getOpenSSLErrorString();
                 break;
+            }
 
             const unsigned char *ct = reinterpret_cast<const unsigned char *>(ciphertext.constData());
             int ctLen = ciphertext.size() - 16;
             if (ctLen <= 0) break;
 
             if (EVP_DecryptUpdate(ctx, reinterpret_cast<unsigned char *>(plaintext.data()),
-                                   &outLen, ct, ctLen) != 1)
+                                   &outLen, ct, ctLen) != 1) {
+                qWarning() << "OpenSSL error:" << getOpenSSLErrorString();
                 break;
+            }
             totalLen = outLen;
 
             if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16,
-                                     const_cast<unsigned char *>(ct + ctLen)) != 1)
+                                     const_cast<unsigned char *>(ct + ctLen)) != 1) {
+                qWarning() << "OpenSSL error:" << getOpenSSLErrorString();
                 break;
+            }
 
             if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(plaintext.data()) + totalLen,
-                                     &outLen) != 1)
+                                     &outLen) != 1) {
+                qWarning() << "OpenSSL error (auth tag mismatch - wrong password?):" << getOpenSSLErrorString();
                 break;
+            }
             totalLen += outLen;
             ok = true;
         } while (false);
@@ -154,10 +181,13 @@ QPair<QList<TokenInfo>, ImportParser::Error> ImportParser::decryptAndParse(const
 
     auto deriveKey = [](const QString &password, const QByteArray &salt) -> QByteArray {
         QByteArray key(32, 0);
-        PKCS5_PBKDF2_HMAC(password.toUtf8().constData(), password.toUtf8().size(),
+        if (PKCS5_PBKDF2_HMAC(password.toUtf8().constData(), password.toUtf8().size(),
                            reinterpret_cast<const unsigned char *>(salt.constData()), salt.size(),
                            10000, EVP_sha256(),
-                           32, reinterpret_cast<unsigned char *>(key.data()));
+                           32, reinterpret_cast<unsigned char *>(key.data())) != 1) {
+            qWarning() << "OpenSSL: PKCS5_PBKDF2_HMAC failed:" << getOpenSSLErrorString();
+            return {};
+        }
         return key;
     };
 

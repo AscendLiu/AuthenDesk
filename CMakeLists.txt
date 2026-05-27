@@ -18,6 +18,9 @@ qt_add_executable(AuthenDesk
     src/tokendata.h
     src/tokenmanager.cpp
     src/tokenmanager.h
+    src/result.h
+    src/localemanager.cpp
+    src/localemanager.h
     src/importparser.cpp
     src/importparser.h
     src/serviceiconprovider.cpp

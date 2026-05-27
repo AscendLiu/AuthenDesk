@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
+import AuthenDesk
 
 Page {
     id: page
@@ -30,7 +31,7 @@ Page {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
                 Layout.rightMargin: 8
-                placeholderText: "搜索令牌..."
+                placeholderText: Strings.searchPlaceholder
                 placeholderTextColor: "#94A3B8"
                 color: "#0F172A"
                 font.pixelSize: 16
@@ -95,24 +96,24 @@ Page {
                     y: parent.height
 
                     MenuItem {
-                        text: "添加令牌"
+                        text: Strings.addToken
                         font.pixelSize: 14
                         onTriggered: Window.window.navigateTo("add")
                     }
                     MenuItem {
-                        text: "备份与还原"
+                        text: Strings.backupAndRestore
                         font.pixelSize: 14
                         onTriggered: Window.window.navigateTo("backup")
                     }
                     MenuSeparator {}
                     MenuItem {
-                        text: "清空全部令牌"
+                        text: Strings.clearAllTokens
                         font.pixelSize: 14
                         onTriggered: clearDialog.open()
                     }
                     MenuSeparator {}
                     MenuItem {
-                        text: "关于"
+                        text: Strings.about
                         font.pixelSize: 14
                         onTriggered: aboutDialog.open()
                     }
@@ -146,7 +147,7 @@ Page {
 
     Dialog {
         id: clearDialog
-        title: "清空全部令牌"
+        title: Strings.clearAllTokensTitle
         anchors.centerIn: parent
         modal: true
 
@@ -157,7 +158,7 @@ Page {
         }
 
         header: Text {
-            text: "清空全部令牌"
+            text: Strings.clearAllTokensTitle
             color: "#0F172A"
             font.pixelSize: 18
             font.bold: true
@@ -170,7 +171,7 @@ Page {
             width: 360
 
             Text {
-                text: "确定要删除全部令牌吗？此操作不可撤销。"
+                text: Strings.clearAllTokensConfirm
                 color: "#64748B"
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
@@ -183,7 +184,7 @@ Page {
 
                 Button {
                     Layout.fillWidth: true
-                    text: "取消"
+                    text: Strings.cancel
                     font.pixelSize: 14
 
                     background: Rectangle {
@@ -203,7 +204,7 @@ Page {
 
                 Button {
                     Layout.fillWidth: true
-                    text: "清空"
+                    text: Strings.clear
                     font.pixelSize: 14
 
                     background: Rectangle {
@@ -228,7 +229,7 @@ Page {
 
     Dialog {
         id: aboutDialog
-        title: "关于"
+        title: Strings.aboutTitle
         anchors.centerIn: parent
         modal: true
         width: 320
@@ -262,7 +263,7 @@ Page {
             }
 
             Text {
-                text: "版本 1.0.0"
+                text: Strings.version
                 color: "#64748B"
                 font.pixelSize: 14
                 Layout.fillWidth: true
@@ -270,7 +271,7 @@ Page {
             }
 
             Text {
-                text: "基于 Qt 6.8 + QML 的桌面双因素认证令牌管理器。\n支持 TOTP/HOTP，从 2FAS 备份导入导出，\n二维码识别导入。"
+                text: Strings.aboutDescription
                 color: "#64748B"
                 font.pixelSize: 13
                 Layout.fillWidth: true
@@ -283,7 +284,7 @@ Page {
             Button {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 40
-                text: "确定"
+                text: Strings.ok
                 font.pixelSize: 14
 
                 background: Rectangle {

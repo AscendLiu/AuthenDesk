@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+import AuthenDesk
 
 Window {
     id: captureWindow
@@ -113,7 +114,7 @@ Window {
 
         Text {
             anchors.centerIn: parent
-            text: selectionCanvas.drawing ? "" : "拖动鼠标选择二维码区域"
+            text: selectionCanvas.drawing ? "" : Strings.dragToSelectRegion
             color: "#FFFFFF"
             font.pixelSize: 18
             opacity: 0.8
@@ -124,7 +125,7 @@ Window {
             anchors.topMargin: 16
             anchors.right: parent.right
             anchors.rightMargin: 24
-            text: "按 Esc 取消"
+            text: Strings.pressEscToCancel
             color: "#94A3B8"
             font.pixelSize: 14
         }

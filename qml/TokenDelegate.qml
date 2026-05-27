@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import AuthenDesk
 
 ItemDelegate {
     id: delegateRoot
@@ -155,8 +156,6 @@ ItemDelegate {
                 copyTooltipTimer.restart()
             } else if (mouse.button === Qt.RightButton) {
                 actionSheet.show()
-            } else if (mouse.button === Qt.RightButton) {
-                actionSheet.show()
             }
         }
         onPressAndHold: {
@@ -184,7 +183,7 @@ ItemDelegate {
 
         Text {
             anchors.centerIn: parent
-            text: "已复制！"
+            text: Strings.copied
             color: "white"
             font.pixelSize: 14
             font.bold: true
@@ -301,7 +300,7 @@ ItemDelegate {
                 Layout.preferredHeight: 50
                 flat: true
                 contentItem: Text {
-                    text: "编辑"
+                    text: Strings.edit
                     color: "#0F172A"
                     font.pixelSize: 16
                     verticalAlignment: Text.AlignVCenter
@@ -328,7 +327,7 @@ ItemDelegate {
                 Layout.preferredHeight: 50
                 flat: true
                 contentItem: Text {
-                    text: "复制"
+                    text: Strings.copy
                     color: "#0F172A"
                     font.pixelSize: 16
                     verticalAlignment: Text.AlignVCenter
@@ -355,7 +354,7 @@ ItemDelegate {
                 Layout.preferredHeight: 50
                 flat: true
                 contentItem: Text {
-                    text: "删除"
+                    text: Strings.deleteToken
                     color: "#DC2626"
                     font.pixelSize: 16
                     verticalAlignment: Text.AlignVCenter

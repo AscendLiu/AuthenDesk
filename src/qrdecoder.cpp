@@ -55,16 +55,16 @@ void QrDecoder::onProcessFinished(int exitCode, QProcess::ExitStatus status)
 void QrDecoder::captureScreenAndDecode()
 {
     QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) { emit decodeError("无法获取屏幕"); return; }
+    if (!screen) { emit decodeError("Cannot get screen"); return; }
 
     QPixmap pixmap = screen->grabWindow(0);
     if (!pixmap.isNull()) {
-        QTemporaryFile *f = new QTemporaryFile(this);
-        f->setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
-        if (!f->open()) { delete f; emit decodeError("临时文件创建失败"); return; }
-        pixmap.save(f, "PNG"); f->close();
-        m_pendingFile = f->fileName();
-        m_process->start("zbarimg", {"-q", "--raw", f->fileName()});
+        QTemporaryFile f(this);
+        f.setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
+        if (!f.open()) { emit decodeError("Failed to create temp file"); return; }
+        pixmap.save(&f, "PNG"); f.close();
+        m_pendingFile = f.fileName();
+        m_process->start("zbarimg", {"-q", "--raw", f.fileName()});
         return;
     }
 
@@ -74,7 +74,7 @@ void QrDecoder::captureScreenAndDecode()
 void QrDecoder::captureRect(int x, int y, int w, int h)
 {
     QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) { emit decodeError("无法获取屏幕"); return; }
+    if (!screen) { emit decodeError("Cannot get screen"); return; }
 
     QPixmap fullScreen = screen->grabWindow(0);
     if (!fullScreen.isNull()) {
@@ -82,13 +82,13 @@ void QrDecoder::captureRect(int x, int y, int w, int h)
         int rx = qRound(x * dpr), ry = qRound(y * dpr);
         int rw = qRound(w * dpr), rh = qRound(h * dpr);
         QPixmap cropped = fullScreen.copy(rx, ry, rw, rh);
-        if (cropped.isNull()) { emit decodeError("区域裁剪失败"); return; }
-        QTemporaryFile *f = new QTemporaryFile(this);
-        f->setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
-        if (!f->open()) { delete f; emit decodeError("临时文件创建失败"); return; }
-        cropped.save(f, "PNG"); f->close();
-        m_pendingFile = f->fileName();
-        m_process->start("zbarimg", {"-q", "--raw", f->fileName()});
+        if (cropped.isNull()) { emit decodeError("Failed to crop region"); return; }
+        QTemporaryFile f(this);
+        f.setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
+        if (!f.open()) { emit decodeError("Failed to create temp file"); return; }
+        cropped.save(&f, "PNG"); f.close();
+        m_pendingFile = f.fileName();
+        m_process->start("zbarimg", {"-q", "--raw", f.fileName()});
         return;
     }
 
@@ -122,7 +122,7 @@ void QrDecoder::doWaylandCapture(int rx, int ry, int rw, int rh)
         QDBusPendingReply<QDBusObjectPath> reply = *w;
         if (reply.isError()) {
             qWarning() << "Portal call error:" << reply.error().message();
-            emit decodeError("无法请求截屏 (Portal 不可用)");
+            emit decodeError("Cannot capture screen (Portal not available)");
             return;
         }
 
@@ -140,17 +140,17 @@ void QrDecoder::doWaylandCapture(int rx, int ry, int rw, int rh)
 void QrDecoder::onPortalResponse(uint response, QVariantMap results)
 {
     if (response != 0) {
-        emit decodeError("截屏被取消或拒绝");
+        emit decodeError("Screen capture cancelled or denied");
         return;
     }
 
     QString uri = results.value("uri").toString();
-    if (uri.isEmpty()) { emit decodeError("截屏返回数据为空"); return; }
+    if (uri.isEmpty()) { emit decodeError("Screen capture returned empty data"); return; }
     uri = QUrl(uri).toLocalFile();
-    if (uri.isEmpty() || !QFile::exists(uri)) { emit decodeError("截屏文件不存在"); return; }
+    if (uri.isEmpty() || !QFile::exists(uri)) { emit decodeError("Screen capture file does not exist"); return; }
 
     QImage img(uri);
-    if (img.isNull()) { emit decodeError("无法读取截屏图片"); return; }
+    if (img.isNull()) { emit decodeError("Cannot read screen capture image"); return; }
 
     if (m_cropW > 0 && m_cropH > 0) {
         QScreen *screen = QGuiApplication::primaryScreen();
@@ -158,19 +158,19 @@ void QrDecoder::onPortalResponse(uint response, QVariantMap results)
         int cx = qRound(m_cropX * dpr), cy = qRound(m_cropY * dpr);
         int cw = qRound(m_cropW * dpr), ch = qRound(m_cropH * dpr);
         img = img.copy(cx, cy, cw, ch);
-        if (img.isNull()) { emit decodeError("截屏裁剪失败"); return; }
+        if (img.isNull()) { emit decodeError("Screen capture crop failed"); return; }
     }
 
-    QTemporaryFile *f = new QTemporaryFile(this);
-    f->setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
-    if (!f->open()) { delete f; emit decodeError("临时文件创建失败"); return; }
-    f->close();
-    img.save(f->fileName(), "PNG");
+    QTemporaryFile f(this);
+    f.setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
+    if (!f.open()) { emit decodeError("Failed to create temp file"); return; }
+    f.close();
+    img.save(f.fileName(), "PNG");
 
     QFile::remove(uri); // clean up portal temp file
 
-    m_pendingFile = f->fileName();
-    m_process->start("zbarimg", {"-q", "--raw", f->fileName()});
+    m_pendingFile = f.fileName();
+    m_process->start("zbarimg", {"-q", "--raw", f.fileName()});
 }
 
 QVariantMap QrDecoder::parseOtpAuthUri(const QString &uri)
