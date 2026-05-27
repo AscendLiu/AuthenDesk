@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import QtQuick.Dialogs
 import AuthenDesk
 
 Page {
@@ -145,7 +144,19 @@ Page {
                             verticalAlignment: Text.AlignVCenter
                             elide: Text.ElideMiddle
                         }
-                        onClicked: fileDialog.open()
+                        onClicked: {
+                            var result = nativeFileDialog.getOpenFileName(
+                                Strings.selectQrScreenshot,
+                                "",
+                                Strings.imageFiles + ";;" + Strings.allFiles
+                            )
+                            if (result) {
+                                qrFilePath = result
+                                qrStatus.text = Strings.decoding
+                                qrStatus.color = "#64748B"
+                                qrDecoder.decodeImage(qrFilePath)
+                            }
+                        }
                     }
 
                     Button {
@@ -528,18 +539,6 @@ Page {
         property int rectH: 0
         onTriggered: {
             qrDecoder.captureRect(rectX, rectY, rectW, rectH)
-        }
-    }
-
-    FileDialog {
-        id: fileDialog
-        title: Strings.selectQrScreenshot
-        nameFilters: [Strings.imageFiles, Strings.allFiles]
-        onAccepted: {
-            qrFilePath = selectedFile.toString().replace("file://", "")
-            qrStatus.text = Strings.decoding
-            qrStatus.color = "#64748B"
-            qrDecoder.decodeImage(qrFilePath)
         }
     }
 

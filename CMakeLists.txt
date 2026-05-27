@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick QuickControls2 Network Sql DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickControls2 Network Sql DBus)
 
 find_package(OpenSSL REQUIRED)
 
@@ -21,6 +21,8 @@ qt_add_executable(AuthenDesk
     src/result.h
     src/localemanager.cpp
     src/localemanager.h
+    src/nativefiledialog.cpp
+    src/nativefiledialog.h
     src/importparser.cpp
     src/importparser.h
     src/serviceiconprovider.cpp
@@ -47,6 +49,7 @@ target_include_directories(AuthenDesk PRIVATE src)
 target_link_libraries(AuthenDesk PRIVATE
     Qt6::Core
     Qt6::Gui
+    Qt6::Widgets
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Network

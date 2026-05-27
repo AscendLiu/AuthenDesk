@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QIcon>
@@ -12,10 +12,11 @@
 #include "serviceiconprovider.h"
 #include "qrdecoder.h"
 #include "localemanager.h"
+#include "nativefiledialog.h"
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
     app.setWindowIcon(QIcon(":/assets/app_icon.png"));
     app.setApplicationName("AuthenDesk");
     app.setOrganizationName("AuthenDesk");
@@ -55,9 +56,11 @@ int main(int argc, char *argv[])
 
     LocaleManager localeManager;
     SettingsManager settingsManager;
+    NativeFileDialog nativeFileDialog;
 
     engine.rootContext()->setContextProperty("LocaleManager", &localeManager);
     engine.rootContext()->setContextProperty("SettingsManager", &settingsManager);
+    engine.rootContext()->setContextProperty("nativeFileDialog", &nativeFileDialog);
 
     qmlRegisterSingletonType<ImportParser>("AuthenDesk", 1, 0, "ImportParser",
         [](QQmlEngine *, QJSEngine *) -> QObject * {

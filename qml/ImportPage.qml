@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import QtQuick.Window
 import AuthenDesk 1.0
 
@@ -107,7 +106,6 @@ Page {
             Layout.fillHeight: true
             currentIndex: activeTab === "import" ? 0 : 1
 
-            // ---- Import Tab ----
             ColumnLayout {
                 Item { Layout.fillHeight: true }
 
@@ -131,7 +129,7 @@ Page {
                         border.color: "#E2E8F0"
                     }
                     contentItem: Text {
-                        text: filePath ? fileDialog.selectedFile.toString().split("/").pop() : Strings.select2fasFile
+                        text: filePath ? filePath.split("/").pop() : Strings.select2fasFile
                         color: filePath ? "#0F172A" : "#94A3B8"
                         font: parent.font
                         horizontalAlignment: Text.AlignHCenter
@@ -139,7 +137,16 @@ Page {
                         elide: Text.ElideMiddle
                         width: parent.width - 24
                     }
-                    onClicked: fileDialog.open()
+                    onClicked: {
+                        var result = nativeFileDialog.getOpenFileName(
+                            Strings.select2fasBackup,
+                            "",
+                            Strings.twofasBackup + ";;" + Strings.allFiles
+                        )
+                        if (result) {
+                            filePath = result
+                        }
+                    }
                 }
 
                 TextField {
@@ -202,7 +209,6 @@ Page {
                 Item { Layout.fillHeight: true }
             }
 
-            // ---- Export Tab ----
             ColumnLayout {
                 Item { Layout.fillHeight: true }
 
@@ -242,7 +248,17 @@ Page {
                         elide: Text.ElideMiddle
                         width: parent.width - 24
                     }
-                    onClicked: saveDialog.open()
+                    onClicked: {
+                        var result = nativeFileDialog.getSaveFileName(
+                            Strings.save2fasBackup,
+                            "",
+                            new Date().toISOString().slice(0,10).replace(/-/g,"") + "_authendesk.2fas",
+                            Strings.twofasBackup + ";;" + Strings.allFiles
+                        )
+                        if (result) {
+                            exportPath = result
+                        }
+                    }
                 }
 
                 Button {
@@ -286,27 +302,6 @@ Page {
 
                 Item { Layout.fillHeight: true }
             }
-        }
-    }
-
-    FileDialog {
-        id: fileDialog
-        title: Strings.select2fasBackup
-        nameFilters: [Strings.twofasBackup, Strings.allFiles]
-        fileMode: FileDialog.OpenFile
-        onAccepted: {
-            filePath = selectedFile.toString().replace("file://", "")
-        }
-    }
-
-    FileDialog {
-        id: saveDialog
-        title: Strings.save2fasBackup
-        nameFilters: [Strings.twofasBackup, Strings.allFiles]
-        fileMode: FileDialog.SaveFile
-        currentFile: new Date().toISOString().slice(0,10).replace(/-/g,"") + "_authendesk.2fas"
-        onAccepted: {
-            exportPath = selectedFile.toString().replace("file://", "")
         }
     }
 }
