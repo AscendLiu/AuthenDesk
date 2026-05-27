@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/TokenListPage.qml</file>
+        <file>qml/TokenDelegate.qml</file>
+        <file>qml/AddTokenPage.qml</file>
+        <file>qml/EditTokenPage.qml</file>
+        <file>qml/ScreenCapture.qml</file>
+        <file>qml/ImportPage.qml</file>
+        <file>assets/services.json</file>
+        <file>assets/app_icon.png</file>
+    </qresource>
+</RCC>
