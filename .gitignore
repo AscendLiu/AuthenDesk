@@ -1,4 +1,9 @@
 # C++ objects and libs
+
+# Build directories
+build/
+build-*/
+
 *.slo
 *.lo
 *.o

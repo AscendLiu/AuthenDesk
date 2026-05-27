@@ -35,7 +35,7 @@ Page {
                 color: "#0F172A"
                 font.pixelSize: 16
                 leftPadding: 16
-                rightPadding: 40
+                rightPadding: 36
 
                 background: Rectangle {
                     color: "#F1F5F9"
@@ -46,14 +46,31 @@ Page {
                 onTextChanged: tokenModel.filterText = text
             }
 
-            Text {
-                parent: searchField.background
-                text: "\u2315"
-                color: "#94A3B8"
-                font.pixelSize: 18
+            Item {
+                parent: searchField
+                z: 10
+                visible: searchField.text !== ""
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.right
-                anchors.rightMargin: 14
+                anchors.rightMargin: 10
+                width: 20
+                height: 20
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "\u2715"
+                    color: "#94A3B8"
+                    font.pixelSize: 16
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        searchField.text = ""
+                        tokenModel.filterText = ""
+                    }
+                }
             }
 
             Button {
