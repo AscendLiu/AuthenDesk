@@ -59,12 +59,13 @@ void QrDecoder::captureScreenAndDecode()
 
     QPixmap pixmap = screen->grabWindow(0);
     if (!pixmap.isNull()) {
-        QTemporaryFile f(this);
-        f.setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
-        if (!f.open()) { emit decodeError("Failed to create temp file"); return; }
-        pixmap.save(&f, "PNG"); f.close();
-        m_pendingFile = f.fileName();
-        m_process->start("zbarimg", {"-q", "--raw", f.fileName()});
+        delete m_tempFile;
+        m_tempFile = new QTemporaryFile(this);
+        m_tempFile->setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
+        if (!m_tempFile->open()) { emit decodeError("Failed to create temp file"); return; }
+        pixmap.save(m_tempFile, "PNG"); m_tempFile->close();
+        m_pendingFile = m_tempFile->fileName();
+        m_process->start("zbarimg", {"-q", "--raw", m_tempFile->fileName()});
         return;
     }
 
@@ -83,12 +84,13 @@ void QrDecoder::captureRect(int x, int y, int w, int h)
         int rw = qRound(w * dpr), rh = qRound(h * dpr);
         QPixmap cropped = fullScreen.copy(rx, ry, rw, rh);
         if (cropped.isNull()) { emit decodeError("Failed to crop region"); return; }
-        QTemporaryFile f(this);
-        f.setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
-        if (!f.open()) { emit decodeError("Failed to create temp file"); return; }
-        cropped.save(&f, "PNG"); f.close();
-        m_pendingFile = f.fileName();
-        m_process->start("zbarimg", {"-q", "--raw", f.fileName()});
+        delete m_tempFile;
+        m_tempFile = new QTemporaryFile(this);
+        m_tempFile->setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
+        if (!m_tempFile->open()) { emit decodeError("Failed to create temp file"); return; }
+        cropped.save(m_tempFile, "PNG"); m_tempFile->close();
+        m_pendingFile = m_tempFile->fileName();
+        m_process->start("zbarimg", {"-q", "--raw", m_tempFile->fileName()});
         return;
     }
 
@@ -161,16 +163,17 @@ void QrDecoder::onPortalResponse(uint response, QVariantMap results)
         if (img.isNull()) { emit decodeError("Screen capture crop failed"); return; }
     }
 
-    QTemporaryFile f(this);
-    f.setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
-    if (!f.open()) { emit decodeError("Failed to create temp file"); return; }
-    f.close();
-    img.save(f.fileName(), "PNG");
+    delete m_tempFile;
+    m_tempFile = new QTemporaryFile(this);
+    m_tempFile->setFileTemplate("/tmp/authendesk_qr_XXXXXX.png");
+    if (!m_tempFile->open()) { emit decodeError("Failed to create temp file"); return; }
+    m_tempFile->close();
+    img.save(m_tempFile->fileName(), "PNG");
 
     QFile::remove(uri); // clean up portal temp file
 
-    m_pendingFile = f.fileName();
-    m_process->start("zbarimg", {"-q", "--raw", f.fileName()});
+    m_pendingFile = m_tempFile->fileName();
+    m_process->start("zbarimg", {"-q", "--raw", m_tempFile->fileName()});
 }
 
 QVariantMap QrDecoder::parseOtpAuthUri(const QString &uri)

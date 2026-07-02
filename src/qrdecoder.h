@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVariantMap>
 #include <QProcess>
+#include <QTemporaryFile>
 
 class QrDecoder : public QObject
 {
@@ -31,6 +32,7 @@ private:
 
     QProcess *m_process;
     QString m_pendingFile;
+    QTemporaryFile *m_tempFile = nullptr;
     QString m_restoreToken;
     int m_cropX, m_cropY, m_cropW, m_cropH;
 };
