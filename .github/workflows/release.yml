@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate release notes
+        run: |
+          echo "## Changelog" > ${{ github.workspace }}/RELEASE_NOTES.md
+          echo "" >> ${{ github.workspace }}/RELEASE_NOTES.md
+          git log $(git tag --sort=-creatordate | head -2 | tail -1)..HEAD --oneline --no-decorate \
+            | sed 's/^/- /' >> ${{ github.workspace }}/RELEASE_NOTES.md || true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ github.workspace }}/RELEASE_NOTES.md
+          make_latest: true
