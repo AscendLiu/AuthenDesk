@@ -13,6 +13,7 @@
 #include "qrdecoder.h"
 #include "localemanager.h"
 #include "nativefiledialog.h"
+#include "version.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +21,7 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(":/assets/app_icon.png"));
     app.setApplicationName("AuthenDesk");
     app.setOrganizationName("AuthenDesk");
-    app.setApplicationVersion("1.0.0");
+    app.setApplicationVersion(AUTHDESK_VERSION);
     app.setDesktopFileName("authendesk");
 
     QCommandLineParser parser;
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("LocaleManager", &localeManager);
     engine.rootContext()->setContextProperty("SettingsManager", &settingsManager);
     engine.rootContext()->setContextProperty("nativeFileDialog", &nativeFileDialog);
+    engine.rootContext()->setContextProperty("appVersion", AUTHDESK_VERSION);
 
     qmlRegisterSingletonType<ImportParser>("AuthenDesk", 1, 0, "ImportParser",
         [](QQmlEngine *, QJSEngine *) -> QObject * {

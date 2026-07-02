@@ -24,7 +24,7 @@ QtObject {
 
     // About dialog
     readonly property string aboutTitle: isChinese ? "关于" : "About"
-    readonly property string version: isChinese ? "版本 1.0.0" : "Version 1.0.0"
+    readonly property string version: isChinese ? "版本 " + appVersion : "Version " + appVersion
     readonly property string aboutDescription: isChinese
         ? "基于 Qt 6.8 + QML 的桌面双因素认证令牌管理器。\n支持 TOTP/HOTP，从 2FAS 备份导入导出，\n二维码识别导入。"
         : "Desktop two-factor authentication token manager based on Qt 6.8 + QML.\nSupports TOTP/HOTP, import/export from 2FAS backup,\nQR code scanning."

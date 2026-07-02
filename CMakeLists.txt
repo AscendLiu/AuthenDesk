@@ -29,6 +29,7 @@ qt_add_executable(AuthenDesk
     src/serviceiconprovider.h
     src/qrdecoder.cpp
     src/qrdecoder.h
+    src/version.h
     src/models/tokenlistmodel.cpp
     src/models/tokenlistmodel.h
     qml.qrc

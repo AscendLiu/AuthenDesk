@@ -1,5 +1,6 @@
 #include "tokenmanager.h"
 #include "serviceiconprovider.h"
+#include "version.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStandardPaths>
@@ -379,7 +380,7 @@ bool TokenManager::exportToFile(const QString &filePath)
     QJsonObject root;
     root["schemaVersion"] = 4;
     root["appVersionCode"] = 1;
-    root["appVersionName"] = "1.0.0";
+    root["appVersionName"] = AUTHDESK_VERSION;
     root["appOrigin"] = "desktop";
     root["updatedAt"] = QDateTime::currentMSecsSinceEpoch();
 
